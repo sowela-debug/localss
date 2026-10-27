@@ -1,0 +1,76 @@
+name: Build LocalSS Apps
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Enable Windows
+        run: flutter config --enable-windows-desktop
+
+      - name: Generate Flutter Project
+        working-directory: app
+        run: flutter create --platforms=windows,android .
+
+      - name: Install Dependencies
+        working-directory: app
+        run: flutter pub get
+
+      - name: Build Windows
+        working-directory: app
+        run: flutter build windows --release
+
+      - name: Upload Windows App
+        uses: actions/upload-artifact@v4
+        with:
+          name: LocalSS-Windows
+          path: app/build/windows/x64/runner/Release/
+
+
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Generate Flutter Project
+        working-directory: app
+        run: flutter create --platforms=android .
+
+      - name: Install Dependencies
+        working-directory: app
+        run: flutter pub get
+
+      - name: Build Android
+        working-directory: app
+        run: flutter build apk --debug
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LocalSS-Android
+          path: app/build/app/outputs/flutter-apk/app-debug.apk
